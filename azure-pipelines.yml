@@ -1,0 +1,31 @@
+trigger:
+- master
+
+pool:
+  name: 'Default'  # Your self-hosted Windows agent
+
+variables:
+  buildConfiguration: 'Release'
+  outputDir: '$(Build.ArtifactStagingDirectory)'
+
+steps:
+- checkout: self
+  persistCredentials: true
+
+# Restore project
+- script: dotnet restore MvcMovie.csproj
+  displayName: 'Restore ASP.NET Core Project'
+
+# Build project
+- script: dotnet build MvcMovie.csproj --configuration $(buildConfiguration)
+  displayName: 'Build ASP.NET Core Project'
+
+# Publish project
+- script: dotnet publish MvcMovie.csproj --configuration $(buildConfiguration) --output $(outputDir)
+  displayName: 'Publish Web App'
+
+# Publish artifact for release pipeline
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(outputDir)'
+    ArtifactName: 'drop'
